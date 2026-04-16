@@ -78,15 +78,15 @@
                     <h6 class="fw-bold text-primary mb-3">C. Thông tin đoàn</h6>
                     <div class="mb-3">
                         <label class="form-label">Số người lớn *</label>
-                        <input type="number" name="adults" min="1" class="form-control" value="{{ old('adults', 1) }}" required>
+                        <input type="number" name="adults" id="adults" min="1" class="form-control" value="{{ old('adults', 1) }}" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Số trẻ em</label>
-                        <input type="number" name="children" min="0" class="form-control" value="{{ old('children', 0) }}">
+                        <input type="number" name="children" id="children" min="0" class="form-control" value="{{ old('children', 0) }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Số em bé</label>
-                        <input type="number" name="infants" min="0" class="form-control" value="{{ old('infants', 0) }}">
+                        <input type="number" name="infants" id="infants" min="0" class="form-control" value="{{ old('infants', 0) }}">
                     </div>
                     <small class="text-muted">Dùng để tính tiền và trừ số chỗ còn lại (em bé không trừ chỗ).</small>
                 </div>
@@ -135,6 +135,23 @@
                     </div>
                 </div>
             </div>
+
+            <hr>
+
+            <!-- F. Thông tin hành khách chi tiết -->
+            <div class="row">
+                <div class="col-12">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="fas fa-users me-1"></i> F. Thông tin hành khách
+                        <small class="text-muted fw-normal ms-2">(Nhập đúng thông tin theo giấy tờ tùy thân)</small>
+                    </h6>
+                    <div id="passengerForms">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i> Thông tin hành khách sẽ tự động tạo dựa trên số lượng người ở mục C
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2">
             <a href="{{ route('admin.bookings') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Hủy</a>
@@ -146,6 +163,11 @@
 @section('scripts')
 <script>
     const tours = @json($toursForJs);
+    const adultsInput = document.getElementById('adults');
+    const childrenInput = document.getElementById('children');
+    const infantsInput = document.getElementById('infants');
+    const passengerForms = document.getElementById('passengerForms');
+    const customerNameInput = document.querySelector('input[name="customer_name"]');
 
     function populateDepartures() {
         const tourId = document.getElementById('tour_id').value;
@@ -228,6 +250,125 @@
             document.getElementById('departure_id').dispatchEvent(new Event('change'));
         }
     }
+
+    // ========== PASSENGER FORM GENERATION ==========
+    function passengerForm(type, index, defaultName = '') {
+        const labels = {
+            'adult': 'Người lớn',
+            'child': 'Trẻ em',
+            'infant': 'Em bé'
+        };
+        const label = labels[type] || 'Hành khách';
+        const badgeClass = type === 'adult' ? 'bg-primary' : (type === 'child' ? 'bg-success' : 'bg-warning');
+
+        return `
+        <div class="card mb-2 passenger-card border-0 shadow-sm">
+            <div class="card-header py-2 bg-light d-flex align-items-center">
+                <span class="badge ${badgeClass} me-2">${label}</span>
+                <span class="fw-semibold">#${index}</span>
+            </div>
+            <div class="card-body py-2">
+                <div class="row g-2">
+                    <input type="hidden" name="passengers[${type}][${index}][passenger_type]" value="${type}">
+                    
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Họ tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" 
+                            name="passengers[${type}][${index}][full_name]" 
+                            value="${defaultName}"
+                            required placeholder="Nhập họ tên đầy đủ">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1">Giới tính</label>
+                        <select class="form-select form-select-sm" name="passengers[${type}][${index}][gender]">
+                            <option value="">--</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1">Năm sinh</label>
+                        <input type="number" class="form-control form-control-sm" 
+                            name="passengers[${type}][${index}][birth_year]" 
+                            placeholder="VD: 1990" min="1920" max="${new Date().getFullYear()}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">CCCD / Passport</label>
+                        <input type="text" class="form-control form-control-sm" 
+                            name="passengers[${type}][${index}][id_number]" 
+                            placeholder="Số giấy tờ tùy thân">
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function renderPassengers() {
+        const adults = Math.max(0, parseInt(adultsInput.value) || 0);
+        const children = Math.max(0, parseInt(childrenInput.value) || 0);
+        const infants = Math.max(0, parseInt(infantsInput.value) || 0);
+        const customerName = customerNameInput ? customerNameInput.value.trim() : '';
+        
+        let html = '';
+        
+        // Người lớn
+        for (let i = 1; i <= adults; i++) {
+            // Người lớn đầu tiên lấy tên khách hàng liên hệ làm mặc định
+            const defaultName = (i === 1 && customerName) ? customerName : '';
+            html += passengerForm('adult', i, defaultName);
+        }
+        
+        // Trẻ em
+        for (let i = 1; i <= children; i++) {
+            html += passengerForm('child', i);
+        }
+        
+        // Em bé
+        for (let i = 1; i <= infants; i++) {
+            html += passengerForm('infant', i);
+        }
+        
+        if (!html) {
+            html = '<div class="text-muted small"><i class="fas fa-info-circle me-1"></i> Chưa có hành khách. Vui lòng nhập số lượng ở mục C.</div>';
+        } else {
+            const total = adults + children + infants;
+            html = `<div class="alert alert-light py-2 mb-3 border">
+                <i class="fas fa-users me-1"></i> Tổng số hành khách: <strong>${total}</strong> 
+                (${adults} người lớn${children > 0 ? ', ' + children + ' trẻ em' : ''}${infants > 0 ? ', ' + infants + ' em bé' : ''})
+            </div>` + html;
+        }
+        
+        passengerForms.innerHTML = html;
+    }
+
+    // Khi thay đổi số lượng hành khách
+    [adultsInput, childrenInput, infantsInput].forEach(el => {
+        el.addEventListener('input', renderPassengers);
+        el.addEventListener('change', renderPassengers);
+    });
+
+    // Khi thay đổi tên khách hàng, cập nhật tên người lớn đầu tiên
+    if (customerNameInput) {
+        customerNameInput.addEventListener('input', function() {
+            const firstAdultNameInput = document.querySelector('input[name="passengers[adult][1][full_name]"]');
+            if (firstAdultNameInput && !firstAdultNameInput.dataset.userEdited) {
+                firstAdultNameInput.value = this.value;
+            }
+        });
+    }
+
+    // Đánh dấu khi user tự sửa tên người lớn đầu tiên
+    document.addEventListener('input', function(e) {
+        if (e.target.name === 'passengers[adult][1][full_name]') {
+            e.target.dataset.userEdited = 'true';
+        }
+    });
+
+    // Initial render
+    renderPassengers();
 </script>
 @endsection
 @endsection

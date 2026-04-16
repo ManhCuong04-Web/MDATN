@@ -58,7 +58,7 @@
             <div class="col-md-3">
                 <div class="card shadow-sm border-left border-warning" style="border-left-width: 4px;">
                     <div class="card-body">
-                        <h6 class="text-muted mb-2">Đã xác nhận</h6>
+                        <h6 class="text-muted mb-2">Chưa thanh toán</h6>
                         <h3 class="mb-0">{{ $bookings->where('status', 'confirmed')->count() }}</h3>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                                         @if($booking->status === 'pending')
                                             <span class="badge bg-warning text-dark">Chờ xác nhận</span>
                                         @elseif($booking->status === 'confirmed')
-                                            <span class="badge bg-success">Đã xác nhận</span>
+                                            <span class="badge bg-success">Chưa thanh toán</span>
                                         @elseif($booking->status === 'cancelled')
                                             <span class="badge bg-danger">Đã hủy</span>
                                         @elseif($booking->status === 'completed')

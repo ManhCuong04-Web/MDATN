@@ -83,8 +83,27 @@
                                         <td>{{ $booking->adults + $booking->children + $booking->infants }}</td>
                                         <td>{{ number_format($booking->total_amount) }} VNĐ</td>
                                         <td>
-                                            <span class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'secondary') }}">
+                                            <span class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : ($booking->status === 'paid' ? 'info' : 'secondary')) }}">
+                                                @switch($booking->status)
+                                                    @case('pending')
+                                                        Chờ xác nhận
+                                                        @break
+                                                    @case('confirmed')
+                                                        Chưa thanh toán
+                                                        @break
+                                                    @case('paid')
+                                                        Đã thanh toán
+                                                        @break
+                                                    @case('cancelled')
+                                                        Đã hủy
+                                                        @break
+                                                    @case('completed')
+                                                        Hoàn thành
+                                                        @break
+                                                    @default
                                                 {{ ucfirst($booking->status) }}
+                                                        @break
+                                                @endswitch
                                             </span>
                                         </td>
                                         <td>{{ $booking->created_at->format('d/m/Y') }}</td>
@@ -152,7 +171,7 @@
                                 <i class="fas fa-check-circle"></i>
                             </div>
                             <div class="stat-value">{{ $user->bookings->where('status', 'confirmed')->count() }}</div>
-                            <div class="stat-label">Đã xác nhận</div>
+                            <div class="stat-label">Chưa thanh toán</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon stat-icon-info">

@@ -49,7 +49,7 @@ class BookingService
                 'children' => $data['children'] ?? 0,
                 'infants' => $data['infants'] ?? 0,
                 'total_amount' => $totalAmount,
-                'status' => 'pending',
+                'status' => 'confirmed', // Tự động xác nhận khi khách đặt tour, không cần admin xác nhận
                 'note' => $data['note'] ?? null,
                 'expires_at' => now()->addMinutes(15), // Giữ chỗ 15 phút để thanh toán
             ]);

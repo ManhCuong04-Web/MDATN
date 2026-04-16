@@ -304,36 +304,36 @@
 
     <div class="filter-card">
         <form method="GET" action="{{ route('admin.guides.index') }}" class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">Từ khoá</label>
-                <input type="text" name="keyword" class="form-control" value="{{ request('keyword') }}"
-                    placeholder="Tên, mã, số điện thoại...">
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Nhóm HDV</label>
-                <select name="category_id" class="form-select">
-                    <option value="">-- Tất cả --</option>
-                    @foreach ($categories as $category)
+                <div class="col-md-4">
+                    <label class="form-label">Từ khoá</label>
+                    <input type="text" name="keyword" class="form-control" value="{{ request('keyword') }}"
+                        placeholder="Tên, mã, số điện thoại...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nhóm HDV</label>
+                    <select name="category_id" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        @foreach ($categories as $category)
                         <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Trạng thái</label>
-                <select name="status" class="form-select">
-                    <option value="">-- Tất cả --</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả --</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hoạt động</option>
                     <option value="on_leave" {{ request('status') === 'on_leave' ? 'selected' : '' }}>Tạm nghỉ</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Ngưng hoạt động</option>
-                </select>
-            </div>
-            <div class="col-md-12 text-end">
-                <button type="submit" class="btn btn-primary me-2">
-                    <i class="fas fa-search"></i> Lọc
-                </button>
-                <a href="{{ route('admin.guides.index') }}" class="btn btn-outline-secondary">Đặt lại</a>
-            </div>
-        </form>
+                    </select>
+                </div>
+                <div class="col-md-12 text-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Lọc
+                    </button>
+                    <a href="{{ route('admin.guides.index') }}" class="btn btn-outline-secondary">Đặt lại</a>
+                </div>
+            </form>
     </div>
 
     <div class="card shadow-sm border-0">
@@ -368,17 +368,17 @@
                                 </td>
                                 <td class="col-group">
                                     <div class="guide-group-info">
-                                        @if($guide->categories->count() > 0)
+                                    @if($guide->categories->count() > 0)
                                             <div class="guide-categories-list">
                                                 @foreach($guide->categories as $category)
                                                     <span class="guide-category-badge" title="{{ $category->name }}">
                                                         {{ $category->name }}
-                                                    </span>
+                                        </span>
                                                 @endforeach
                                             </div>
-                                        @else
+                                    @else
                                             <span class="guide-category-badge" style="background: #f9fafb; color: #9ca3af;">N/A</span>
-                                        @endif
+                                    @endif
                                         <span class="guide-exp">{{ $guide->experience_years ?? 0 }}y</span>
                                     </div>
                                 </td>
@@ -399,48 +399,48 @@
                                 </td>
                                 <td class="col-status">
                                     <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                                        @php
-                                            $status = $guide->status ?? 'active';
-                                            $statusClass = match($status) {
-                                                'active', 'available' => 'status-active',
-                                                'on_leave' => 'status-leave',
-                                                'inactive' => 'status-inactive',
-                                                default => 'status-active'
-                                            };
-                                            $statusText = match($status) {
-                                                'active', 'available' => 'OK',
-                                                'on_leave' => 'OFF',
-                                                'inactive' => 'NO',
-                                                default => 'OK'
-                                            };
-                                        @endphp
+                                    @php
+                                        $status = $guide->status ?? 'active';
+                                        $statusClass = match($status) {
+                                            'active', 'available' => 'status-active',
+                                            'on_leave' => 'status-leave',
+                                            'inactive' => 'status-inactive',
+                                            default => 'status-active'
+                                        };
+                                        $statusText = match($status) {
+                                            'active', 'available' => 'OK',
+                                            'on_leave' => 'OFF',
+                                            'inactive' => 'NO',
+                                            default => 'OK'
+                                        };
+                                    @endphp
                                         <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
                                         <div class="actions-group">
-                                            <a href="{{ route('admin.guides.show', $guide) }}" 
+                                        <a href="{{ route('admin.guides.show', $guide) }}" 
                                                class="action-btn view" 
                                                title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('admin.guides.edit', $guide) }}" 
+                                        </a>
+                                        <a href="{{ route('admin.guides.edit', $guide) }}" 
                                                class="action-btn edit" 
                                                title="Chỉnh sửa">
                                                 <i class="fas fa-edit"></i>
-                                            </a>
+                                        </a>
                                             <div class="dropdown" style="display: inline-block;">
                                                 <button class="action-btn more" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Thêm">
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <li>
-                                                        <form action="{{ route('admin.guides.destroy', $guide) }}" 
-                                                              method="POST" 
+                                        <form action="{{ route('admin.guides.destroy', $guide) }}" 
+                                              method="POST" 
                                                               onsubmit="return confirm('Bạn có chắc muốn xóa HDV này?')">
-                                                            @csrf
-                                                            @method('DELETE')
+                                            @csrf
+                                            @method('DELETE')
                                                             <button type="submit" class="dropdown-item text-danger">
                                                                 <i class="fas fa-trash me-2"></i> Xóa
-                                                            </button>
-                                                        </form>
+                                            </button>
+                                        </form>
                                                     </li>
                                                 </ul>
                                             </div>

@@ -770,9 +770,9 @@ Route::middleware(['auth', 'guide'])->prefix('guide')->name('guide.')->group(fun
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Guide\GuideDashboardController::class, 'index'])->name('dashboard');
 
-            // 📅 LỊCH LÀM VIỆC HDV
-        Route::get('/calendar', [GuideCalendarController::class, 'index'])
-            ->name('calendar');
+    // 📅 LỊCH LÀM VIỆC HDV
+    Route::get('/calendar', [GuideCalendarController::class, 'index'])
+        ->name('calendar');
 
 
 
@@ -790,17 +790,17 @@ Route::middleware(['auth', 'guide'])->prefix('guide')->name('guide.')->group(fun
     Route::delete('/departures/{departureId}/logs/{logId}', [\App\Http\Controllers\Guide\TourLogController::class, 'destroy'])->name('tour-logs.destroy');
 
     // ghi nhật ký tổng hợp
-    Route::get('/tour-logs',[\App\Http\Controllers\Guide\TourLogController::class, 'dashboard'])->name('tour-logs.logg');
+    Route::get('/tour-logs', [\App\Http\Controllers\Guide\TourLogController::class, 'dashboard'])->name('tour-logs.logg');
 
-    
- // 🕒 Chấm công theo tour
-        Route::get('/departures/{departure}/attendance', [GuideAttendanceController::class, 'index'])
-            ->name('attendance.index');
 
-        Route::post('/departures/{departure}/attendance', [GuideAttendanceController::class, 'store'])
-            ->name('attendance.store');
+    // 🕒 Chấm công theo tour
+    Route::get('/departures/{departure}/attendance', [GuideAttendanceController::class, 'index'])
+        ->name('attendance.index');
 
-  
+    Route::post('/departures/{departure}/attendance', [GuideAttendanceController::class, 'store'])
+        ->name('attendance.store');
+
+
 
     // Roll-call (Điểm danh đoàn – HDV)
     Route::prefix('roll-calls')->middleware(['auth'])->group(function () {
@@ -816,11 +816,11 @@ Route::middleware(['auth', 'guide'])->prefix('guide')->name('guide.')->group(fun
             '/departures/{departureId}',
             [\App\Http\Controllers\Guide\RollCallController::class, 'store']
         )->name('roll-calls.store');
-    //       // ✅ KẾT THÚC TOUR (THIẾU DÒNG NÀY)
-    // Route::post(
-    //     '/departures/{departureId}/complete',
-    //     [\App\Http\Controllers\Guide\RollCallController::class, 'complete']
-    // )->name('guide.roll-calls.complete');
+        // ⭐ KẾT THÚC TOUR – SAI ĐANG Ở ĐÂY ⭐
+        Route::get(
+            '/departures/{departureId}/complete',
+            [\App\Http\Controllers\Guide\RollCallController::class, 'complete']
+        )->name('roll-calls.complete');
     });
 
     // Special Requests (Yêu cầu đặc biệt)
@@ -870,37 +870,44 @@ Route::get('/test-guide-auto-sync', function () {
 Route::prefix('admin')->middleware(['auth'])->group(function () {
 
     // Danh sách
-    Route::get('/customer', 
+    Route::get(
+        '/customer',
         [App\Http\Controllers\Admin\CustomerController::class, 'index']
     )->name('admin.customer.index');
 
     // Form thêm khách hàng
-    Route::get('/customer/create',
+    Route::get(
+        '/customer/create',
         [App\Http\Controllers\Admin\CustomerController::class, 'create']
     )->name('admin.customer.create');
 
     // Lưu khách hàng
-    Route::post('/customer',
+    Route::post(
+        '/customer',
         [App\Http\Controllers\Admin\CustomerController::class, 'store']
     )->name('admin.customer.store');
 
     // Chi tiết khách hàng
-    Route::get('/customer/{id}',
+    Route::get(
+        '/customer/{id}',
         [App\Http\Controllers\Admin\CustomerController::class, 'show']
     )->name('admin.customer.show');
 
     // Form chỉnh sửa
-    Route::get('/customer/{id}/edit',
+    Route::get(
+        '/customer/{id}/edit',
         [App\Http\Controllers\Admin\CustomerController::class, 'edit']
     )->name('admin.customer.edit');
 
     // Cập nhật khách hàng
-    Route::put('/customer/{id}',
+    Route::put(
+        '/customer/{id}',
         [App\Http\Controllers\Admin\CustomerController::class, 'update']
     )->name('admin.customer.update');
 
     // Xóa khách hàng
-    Route::delete('/customer/{id}',
+    Route::delete(
+        '/customer/{id}',
         [App\Http\Controllers\Admin\CustomerController::class, 'destroy']
     )->name('admin.customer.destroy');
 });
@@ -910,7 +917,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
 
 
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
-    
+
     Route::prefix('tour-logs')->name('tour-logs.')->group(function () {
 
         Route::get('/', [\App\Http\Controllers\Admin\TourLogController::class, 'index'])->name('index');
@@ -925,6 +932,4 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
         Route::delete('/{id}', [\App\Http\Controllers\Admin\TourLogController::class, 'destroy'])->name('destroy');
     });
-
 });
-

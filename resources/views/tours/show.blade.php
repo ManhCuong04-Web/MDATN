@@ -18,35 +18,35 @@
             <div class="row">
                 <div class="col-lg-6 mb-4">
                     <div class="position-relative">
-                        @if ($tour->images->count() > 0)
-                            <div id="tourCarousel" class="carousel slide" data-bs-ride="carousel">
-                                <div class="carousel-inner">
-                                    @foreach ($tour->images as $index => $image)
-                                        @php
-                                            $imageUrl = image_url($image->image_url, '800x400');
-                                        @endphp
-                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                                            <img src="{{ $imageUrl }}" class="d-block w-100 rounded"
-                                                alt="{{ $tour->title }}" loading="lazy" sizes="(min-width: 992px) 800px, 100vw"
-                                                style="height: 400px; object-fit: cover;">
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @if ($tour->images->count() > 1)
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#tourCarousel"
-                                        data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon"></span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#tourCarousel"
-                                        data-bs-slide="next">
-                                        <span class="carousel-control-next-icon"></span>
-                                    </button>
-                                @endif
+                    @if ($tour->images->count() > 0)
+                        <div id="tourCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @foreach ($tour->images as $index => $image)
+                                    @php
+                                        $imageUrl = image_url($image->image_url, '800x400');
+                                    @endphp
+                                    <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                        <img src="{{ $imageUrl }}" class="d-block w-100 rounded"
+                                            alt="{{ $tour->title }}" loading="lazy" sizes="(min-width: 992px) 800px, 100vw"
+                                            style="height: 400px; object-fit: cover;">
+                                    </div>
+                                @endforeach
                             </div>
-                        @else
-                            <img src="{{ placeholder_url('600x400','4F46E5','ffffff',$tour->title) }}"
-                                class="img-fluid rounded" alt="{{ $tour->title }}">
-                        @endif
+                            @if ($tour->images->count() > 1)
+                                <button class="carousel-control-prev" type="button" data-bs-target="#tourCarousel"
+                                    data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#tourCarousel"
+                                    data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            @endif
+                        </div>
+                    @else
+                        <img src="{{ placeholder_url('600x400','4F46E5','ffffff',$tour->title) }}"
+                            class="img-fluid rounded" alt="{{ $tour->title }}">
+                    @endif
                         
                         @if(isset($allDeparturesPast) && $allDeparturesPast)
                             <div class="position-absolute top-50 start-50 translate-middle" style="z-index: 10;">
@@ -87,24 +87,24 @@
                         $discount = $hasOld ? round(100 - ($tour->price / $tour->old_price) * 100) : null;
                     @endphp
                     @if(!isset($allDeparturesPast) || !$allDeparturesPast)
-                        <div class="mb-4">
-                            <label for="departureSelect" class="form-label fw-bold">Chọn ngày khởi hành:</label>
-                            <select id="departureSelect" class="form-select">
-                                @foreach ($tour->departures as $departure)
-                                    <option value="{{ $departure->id }}" data-price="{{ $departure->price }}"
-                                        data-child="{{ $departure->child_price }}">
-                                        {{ \Carbon\Carbon::parse($departure->departure_date)->format('d/m/Y') }}
-                                        ({{ $departure->seats_available }}/{{ $departure->seats_total }} chỗ)
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <div class="mb-4">
+                        <label for="departureSelect" class="form-label fw-bold">Chọn ngày khởi hành:</label>
+                        <select id="departureSelect" class="form-select">
+                            @foreach ($tour->departures as $departure)
+                                <option value="{{ $departure->id }}" data-price="{{ $departure->price }}"
+                                    data-child="{{ $departure->child_price }}">
+                                    {{ \Carbon\Carbon::parse($departure->departure_date)->format('d/m/Y') }}
+                                    ({{ $departure->seats_available }}/{{ $departure->seats_total }} chỗ)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                        <div class="price-section mb-4 text-center">
-                            <h5 class="mb-2">Giá Tour</h5>
-                            <div class="text-white fs-5" id="adultPrice"></div>
-                            <div class="text-white-50" id="childPrice"></div>
-                        </div>
+                    <div class="price-section mb-4 text-center">
+                        <h5 class="mb-2">Giá Tour</h5>
+                        <div class="text-white fs-5" id="adultPrice"></div>
+                        <div class="text-white-50" id="childPrice"></div>
+                    </div>
                     @else
                         <div class="mb-4">
                             <div class="alert alert-info">
@@ -132,19 +132,19 @@
                             </button>
                         </div>
                     @else
-                        @auth
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('bookings.create', ['tour_id' => $tour->id]) }}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-calendar-plus"></i> Đặt tour ngay
-                                </a>
-                            </div>
-                        @else
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('login') }}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt tour
-                                </a>
-                            </div>
-                        @endauth
+                    @auth
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('bookings.create', ['tour_id' => $tour->id]) }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-plus"></i> Đặt tour ngay
+                            </a>
+                        </div>
+                    @else
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('login') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt tour
+                            </a>
+                        </div>
+                    @endauth
                     @endif
                 </div>
             </div>
@@ -346,29 +346,29 @@
             const childPriceEl = document.getElementById('childPrice');
 
             if (departureSelect && adultPriceEl && childPriceEl) {
-                function formatVND(n) {
-                    return new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+            function formatVND(n) {
+                return new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+            }
+
+            function updatePrices() {
+                const opt = departureSelect.options[departureSelect.selectedIndex];
+                const adult = parseInt(opt.dataset.price) || 0;
+                const child = parseInt(opt.dataset.child) || 0;
+
+                adultPriceEl.textContent = `Người lớn: ${formatVND(adult)}`;
+                childPriceEl.textContent = child ? `Trẻ em: ${formatVND(child)}` : '';
+            }
+
+            departureSelect.addEventListener('change', updatePrices);
+            updatePrices();
+            const bookBtn = document.querySelector('a[href*="bookings/create"]');
+            if (bookBtn) {
+                function updateBookingLink() {
+                    const selectedId = departureSelect.value;
+                    bookBtn.href = `/bookings/create?tour_id={{ $tour->id }}&departure_id=${selectedId}`;
                 }
-
-                function updatePrices() {
-                    const opt = departureSelect.options[departureSelect.selectedIndex];
-                    const adult = parseInt(opt.dataset.price) || 0;
-                    const child = parseInt(opt.dataset.child) || 0;
-
-                    adultPriceEl.textContent = `Người lớn: ${formatVND(adult)}`;
-                    childPriceEl.textContent = child ? `Trẻ em: ${formatVND(child)}` : '';
-                }
-
-                departureSelect.addEventListener('change', updatePrices);
-                updatePrices();
-                const bookBtn = document.querySelector('a[href*="bookings/create"]');
-                if (bookBtn) {
-                    function updateBookingLink() {
-                        const selectedId = departureSelect.value;
-                        bookBtn.href = `/bookings/create?tour_id={{ $tour->id }}&departure_id=${selectedId}`;
-                    }
-                    departureSelect.addEventListener('change', updateBookingLink);
-                    updateBookingLink();
+                departureSelect.addEventListener('change', updateBookingLink);
+                updateBookingLink();
                 }
             }
             const tourId = {{ $tour->id }};

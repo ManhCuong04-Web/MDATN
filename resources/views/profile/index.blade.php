@@ -137,7 +137,7 @@
                                                             @endif">
                                                             @switch($booking->status)
                                                                 @case('pending') Chờ xác nhận @break
-                                                                @case('confirmed') Đã xác nhận @break
+                                                                @case('confirmed') Chưa thanh toán @break
                                                                 @case('cancelled') Đã hủy @break
                                                                 @case('completed') Hoàn thành @break
                                                                 @default {{ $booking->status }} @break

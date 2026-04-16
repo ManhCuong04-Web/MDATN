@@ -9,10 +9,30 @@
     <h4 class="fw-bold text-primary mb-1">
         <i class="fas fa-users me-2"></i>Điểm danh đoàn
     </h4>
+
     <div class="text-muted mb-3">
         Tour: <strong>{{ $departure->tour->title }}</strong> |
         Ngày: <strong>{{ $departure->departure_date?->format('d/m/Y') }}</strong>
     </div>
+
+    {{-- ⚠️ HIỂN THỊ TRẠNG THÁI TOUR --}}
+    @if($departure->tour_status === 'completed')
+        <div class="alert alert-success d-flex align-items-center">
+            <i class="fas fa-flag-checkered me-2"></i>
+            <strong>Tour đã kết thúc.</strong> Không thể thực hiện điểm danh nữa.
+        </div>
+    @endif
+
+    {{-- NÚT KẾT THÚC TOUR --}}
+    @if($departure->tour_status !== 'completed')
+        <div class="mb-3 text-end">
+            <a href="{{ route('guide.roll-calls.complete', $departure->id) }}"
+               class="btn btn-danger"
+               onclick="return confirm('Bạn có chắc muốn kết thúc tour? Sau khi kết thúc sẽ không thể điểm danh lại!')">
+                <i class="fas fa-flag-checkered me-1"></i> Kết thúc tour
+            </a>
+        </div>
+    @endif
 
     {{-- CARD --}}
     <div class="card shadow-sm">
@@ -45,14 +65,12 @@
                         @endphp
 
                         {{-- MÀU DÒNG --}}
-                        <tr
-                            class="
-                                @if(!$checkIn) table-secondary
-                                @elseif($checkIn->status === 'checked_in') table-success
-                                @elseif($checkIn->status === 'absent') table-danger
-                                @endif
-                            "
-                        >
+                        <tr class="
+                            @if(!$checkIn) table-secondary
+                            @elseif($checkIn->status === 'checked_in') table-success
+                            @elseif($checkIn->status === 'absent') table-danger
+                            @endif
+                        ">
                             {{-- STT --}}
                             <td>{{ $i + 1 }}</td>
 
@@ -88,55 +106,61 @@
                                 {{ $p->booking->user->phone ?? '—' }}
                             </td>
 
-                            {{-- TRẠNG THÁI (HIỂN THỊ RÕ KHÁCH ĐÃ CHECK-IN) --}}
+                            {{-- TRẠNG THÁI --}}
                             <td class="text-center">
                                 @if(!$checkIn)
-                                    <span class="badge bg-secondary">
-                                        Chưa điểm danh
-                                    </span>
+                                    <span class="badge bg-secondary">Chưa điểm danh</span>
                                 @elseif($checkIn->status === 'checked_in')
-                                    <span class="badge bg-success">
-                                        ✔ Đã check-in
-                                    </span>
+                                    <span class="badge bg-success">✔ Đã check-in</span>
                                 @else
-                                    <span class="badge bg-danger">
-                                        ✖ Vắng
-                                    </span>
+                                    <span class="badge bg-danger">✖ Vắng</span>
                                 @endif
                             </td>
 
-                            {{-- ACTION (FORM THUẦN – KHÔNG JS) --}}
+                            {{-- THAO TÁC --}}
                             <td class="text-center">
-                                <form
-                                    action="{{ route('guide.roll-calls.store', $departure->id) }}"
-                                    method="POST"
-                                    class="d-inline"
-                                >
-                                    @csrf
-                                    <input type="hidden" name="passenger_id" value="{{ $p->id }}">
 
-                                    {{-- CHECK-IN --}}
-                                    <button
-                                        type="submit"
-                                        name="status"
-                                        value="checked_in"
-                                        class="btn btn-success btn-sm"
-                                        @if($checkIn && $checkIn->status === 'checked_in') disabled @endif
-                                    >
-                                        <i class="fas fa-check"></i> Check-in
-                                    </button>
+                                {{-- Tour đã kết thúc → Không cho thao tác --}}
+                                @if($departure->tour_status === 'completed')
+                                    <span class="badge bg-secondary px-3 py-2">
+                                        Không khả dụng
+                                    </span>
 
-                                    {{-- ABSENT --}}
-                                    <button
-                                        type="submit"
-                                        name="status"
-                                        value="absent"
-                                        class="btn btn-danger btn-sm"
-                                        @if($checkIn && $checkIn->status === 'absent') disabled @endif
+                                @else
+                                    {{-- FORM CHECK-IN --}}
+                                    <form
+                                        action="{{ route('guide.roll-calls.store', $departure->id) }}"
+                                        method="POST"
+                                        class="d-inline"
                                     >
-                                        <i class="fas fa-times"></i> Vắng
-                                    </button>
-                                </form>
+                                        @csrf
+                                        <input type="hidden" name="passenger_id" value="{{ $p->id }}">
+                                          <input type="hidden" name="check_in_time" value="{{ now() }}">
+
+                                        {{-- CHECK-IN --}}
+                                        <button
+                                            type="submit"
+                                            name="status"
+                                            value="checked_in"
+                                            class="btn btn-success btn-sm"
+                                            @if($checkIn && $checkIn->status === 'checked_in') disabled @endif
+                                        >
+                                            <i class="fas fa-check"></i> Check-in
+                                        </button>
+
+                                        {{-- ABSENT --}}
+                                        <button
+                                            type="submit"
+                                            name="status"
+                                            value="absent"
+                                            class="btn btn-danger btn-sm"
+                                            @if($checkIn && $checkIn->status === 'absent') disabled @endif
+                                        >
+                                            <i class="fas fa-times"></i> Vắng
+                                        </button>
+                                    </form>
+                                @endif
+
                             </td>
                         </tr>
                     @endforeach

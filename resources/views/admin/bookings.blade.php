@@ -16,7 +16,7 @@
                         <i class="fas fa-clock"></i> Chờ xác nhận
                     </button>
                     <button class="btn btn-outline-success" onclick="filterBookings('confirmed')">
-                        <i class="fas fa-check"></i> Đã xác nhận
+                        <i class="fas fa-check"></i> Chưa thanh toán
                     </button>
                 </div>
             </div>
@@ -106,13 +106,16 @@
                                                         Chờ xác nhận
                                                         @break
                                                     @case('confirmed')
-                                                        Đã xác nhận
+                                                        Chưa thanh toán
                                                         @break
                                                     @case('cancelled')
                                                         Đã hủy
                                                         @break
                                                     @case('completed')
                                                         Hoàn thành
+                                                        @break
+                                                    @case('paid')
+                                                        Đã thanh toán
                                                         @break
                                                     @default
                                                         {{ $booking->status }}
@@ -218,7 +221,7 @@ function updateBookingStatus(bookingId, status) {
     currentStatus = status;
 
     const statusText = {
-        'confirmed': 'Đã xác nhận',
+        'confirmed': 'Chưa thanh toán',
         'cancelled': 'Đã hủy',
         'completed': 'Hoàn thành'
     };

@@ -246,27 +246,27 @@
                                                 <i class="fas fa-calendar-times"></i> Hết lịch trình
                                             </button>
                                         @else
-                                            <a href="{{ route('tours.show', $tour) }}" class="btn btn-outline-primary">
-                                                <i class="fas fa-eye"></i> Xem chi tiết
-                                            </a>
-                                            @auth
-                                                <form action="{{ route('wishlists.store') }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    <input type="hidden" name="tour_id" value="{{ $tour->id }}">
-                                                    <button type="submit" class="btn btn-outline-danger">
-                                                        <i class="fas fa-heart"></i> Yêu thích
-                                                    </button>
-                                                </form>
+                                        <a href="{{ route('tours.show', $tour) }}" class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Xem chi tiết
+                                        </a>
+                                        @auth
+                                            <form action="{{ route('wishlists.store') }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="tour_id" value="{{ $tour->id }}">
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="fas fa-heart"></i> Yêu thích
+                                                </button>
+                                            </form>
 
-                                                <a href="{{ route('bookings.create', ['tour_id' => $tour->id]) }}"
-                                                    class="btn btn-primary">
-                                                    <i class="fas fa-calendar-plus"></i> Đặt tour
-                                                </a>
-                                            @else
-                                                <a href="{{ route('login') }}" class="btn btn-primary">
-                                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt
-                                                </a>
-                                            @endauth
+                                            <a href="{{ route('bookings.create', ['tour_id' => $tour->id]) }}"
+                                                class="btn btn-primary">
+                                                <i class="fas fa-calendar-plus"></i> Đặt tour
+                                            </a>
+                                        @else
+                                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                                <i class="fas fa-sign-in-alt"></i> Đăng nhập để đặt
+                                            </a>
+                                        @endauth
                                         @endif
                                     </div>
                                 </div>

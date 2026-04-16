@@ -23,7 +23,7 @@
                 </p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('admin.bookings', ['tour_id' => $tour->id, 'date_range' => $departureDate . ' - ' . $departureDate]) }}" class="btn btn-secondary">
+                <a href="{{ route('admin.bookings', ['tour_id' => $tour->id, 'departure_date' => $departureDate]) }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Quay lại
                 </a>
                 <button onclick="window.print()" class="btn btn-primary">
@@ -80,6 +80,7 @@
                                 <th style="width: 100px;" class="text-center">Loại</th>
                                 <th style="width: 100px;">Năm sinh</th>
                                 <th style="width: 150px;">Thuộc booking</th>
+                                <th style="width: 120px;" class="text-center">Nguồn booking</th>
                                 <th style="width: 130px;">Liên hệ</th>
                                 <th style="width: 120px;" class="text-center">Trạng thái</th>
                                 <th>Ghi chú</th>
@@ -112,6 +113,19 @@
                                         <div class="small text-muted">
                                             {{ $customer['booking_user_name'] }}
                                         </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $source = strtolower($customer['booking_source'] ?? 'website');
+                                            $sourceLabels = [
+                                                'website' => ['label' => 'Website', 'class' => 'bg-primary'],
+                                                'zalo' => ['label' => 'Zalo', 'class' => 'bg-info'],
+                                                'facebook' => ['label' => 'Facebook', 'class' => 'bg-info'],
+                                                'phone' => ['label' => 'Điện thoại', 'class' => 'bg-success']
+                                            ];
+                                            $sourceInfo = $sourceLabels[$source] ?? ['label' => ucfirst($source), 'class' => 'bg-secondary'];
+                                        @endphp
+                                        <span class="badge {{ $sourceInfo['class'] }} text-white">{{ $sourceInfo['label'] }}</span>
                                     </td>
                                     <td>
                                         <i class="fas fa-phone me-1"></i>
@@ -160,7 +174,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-5">
+                                    <td colspan="9" class="text-center py-5">
                                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                         <p class="text-muted">Chưa có khách hàng nào trong danh sách</p>
                                     </td>
@@ -175,10 +189,9 @@
                                     <span class="badge bg-warning text-dark">{{ $totalChildren }}T</span>
                                     <span class="badge bg-info">{{ $totalInfants }}E</span>
                                 </td>
-                                <td colspan="5" class="fw-bold text-primary">
+                                <td colspan="6" class="fw-bold text-primary">
                                     {{ $totalGuests }} khách ({{ $totalAdults }} người lớn, {{ $totalChildren }} trẻ em, {{ $totalInfants }} em bé)
                                 </td>
-                                <td colspan="2"></td>
                             </tr>
                         </tfoot>
                     </table>

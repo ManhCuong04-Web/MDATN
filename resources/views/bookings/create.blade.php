@@ -35,6 +35,17 @@
                 <input type="hidden" name="tour_id" value="{{ $tour->id }}">
                 <div id="formErrors" class="alert alert-danger" style="display:none;"></div>
 
+@if ($errors->any())
+    <div class="alert alert-danger mt-3">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+
                 {{-- DEPARTURE --}}
                 <div class="mb-4">
                     <label class="form-label fw-bold">Chọn ngày khởi hành *</label>

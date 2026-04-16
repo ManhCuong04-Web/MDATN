@@ -275,7 +275,14 @@
                                                     @case('confirmed')
                                                         <span class="badge badge-success">
                                                             <i class="fas fa-circle mr-1" style="font-size: 8px;"></i>
-                                                            Đã xác nhận
+                                                            Chưa thanh toán
+                                                        </span>
+                                                    @break
+
+                                                    @case('paid')
+                                                        <span class="badge badge-info">
+                                                            <i class="fas fa-circle mr-1" style="font-size: 8px;"></i>
+                                                            Đã thanh toán
                                                         </span>
                                                     @break
 
@@ -300,10 +307,23 @@
                                                 @endswitch
                                             </td>
                                             <td class="px-6 py-4 text-center">
+                                                <div class="d-flex gap-2 justify-content-center">
                                                 <a href="{{ route('admin.bookings.show', $booking) }}"
-                                                    class="btn btn-primary btn-sm" title="Xem chi tiết">
+                                                        class="btn btn-primary btn-sm" title="Xem chi tiết booking">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                    @if($booking->departure_id && $booking->departure)
+                                                        <a href="{{ route('admin.bookings', ['tour_id' => $booking->tour_id, 'departure_date' => $booking->departure->departure_date->format('Y-m-d')]) }}"
+                                                            class="btn btn-info btn-sm" title="Xem trong quản lý đặt tour (theo ngày khởi hành)">
+                                                            <i class="fas fa-calendar-check"></i>
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('admin.bookings', ['tour_id' => $booking->tour_id]) }}"
+                                                            class="btn btn-info btn-sm" title="Xem trong quản lý đặt tour">
+                                                            <i class="fas fa-calendar-check"></i>
+                                                        </a>
+                                                    @endif
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

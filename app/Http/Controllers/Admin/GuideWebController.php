@@ -26,12 +26,12 @@ class GuideWebController extends Controller
         
         // Filter by keyword
         if ($request->filled('keyword')) {
-            $keyword = $request->string('keyword')->toString();
-            $query->where(function ($q) use ($keyword) {
-                $q->where('full_name', 'like', "%{$keyword}%")
-                    ->orWhere('code', 'like', "%{$keyword}%")
-                    ->orWhere('phone', 'like', "%{$keyword}%");
-            });
+                $keyword = $request->string('keyword')->toString();
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('full_name', 'like', "%{$keyword}%")
+                        ->orWhere('code', 'like', "%{$keyword}%")
+                        ->orWhere('phone', 'like', "%{$keyword}%");
+                });
         }
         
         // Filter by category
@@ -39,7 +39,7 @@ class GuideWebController extends Controller
             $categoryId = $request->integer('category_id');
             $query->whereHas('categories', function ($catQuery) use ($categoryId) {
                 $catQuery->where('guide_categories.id', $categoryId);
-            });
+                });
         }
         
         // Filter by status

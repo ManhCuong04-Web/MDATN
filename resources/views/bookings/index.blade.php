@@ -63,7 +63,7 @@
                                                                 @break
 
                                                                 @case('confirmed')
-                                                                    Đã xác nhận
+                                                                    Chưa thanh toán
                                                                 @break
 
                                                                 @case('cancelled')
@@ -72,6 +72,10 @@
 
                                                                 @case('completed')
                                                                     Hoàn thành
+                                                                @break
+
+                                                                @case('paid')
+                                                                    Đã thanh toán
                                                                 @break
 
                                                                 @default

@@ -47,7 +47,21 @@ class BookingController extends Controller
     public function create(Request $request): View
     {
         $tour = Tour::with(['departures', 'images'])->findOrFail($request->tour_id);
-        $departures = $tour->departures()->where('seats_available', '>', 0)->whereDate('departure_date', '>=', now())->get();
+        
+        // Lọc departures cho khách hàng:
+        // 1. Còn chỗ (seats_available > 0)
+        // 2. Ngày khởi hành >= ngày hiện tại
+        // 3. Chưa chốt đoàn (group_confirmed = false)
+        // 4. Ngày khởi hành phải cách ngày hiện tại ít nhất 3 ngày
+        $today = \Carbon\Carbon::today()->startOfDay();
+        $minDepartureDate = $today->copy()->addDays(3);
+        
+        $departures = $tour->departures()
+            ->where('seats_available', '>', 0)
+            ->where('group_confirmed', false)
+            ->whereDate('departure_date', '>=', $minDepartureDate->toDateString())
+            ->orderBy('departure_date')
+            ->get();
         // dd($departures);
         $promotions = Promotion::where('status', 'active')
             ->where('start_date', '<=', now())
@@ -132,7 +146,12 @@ class BookingController extends Controller
         }
 
         $tour = Tour::findOrFail($validated['tour_id']);
+
+        
         $departure = TourDeparture::findOrFail($validated['departure_id']);
+
+
+
         // kiểm tra ngày khởi hành hợp lệ
         if ($departure->departure_date < now()->toDateString()) {
             return back()->withErrors(['departure_id' => 'Ngày khởi hành đã qua, vui lòng chọn ngày khác.']);
@@ -144,6 +163,51 @@ class BookingController extends Controller
         if ($departure->seats_available < $seatPassengers) {
             return back()->withInput()->withErrors(['seats' => 'Không đủ chỗ trống cho số lượng người lớn và trẻ em đã chọn.']);
         }
+
+        // ================================
+// VALIDATE CCCD NGƯỜI LỚN + TRÁNH TRÙNG CCCD
+// ================================
+if ($request->has('passengers')) {
+
+    $cccdUsed = []; // để kiểm tra trùng CCCD
+
+    foreach ($request->passengers as $group) {
+        foreach ($group as $p) {
+
+            $type  = $p['passenger_type'] ?? null;
+            $idNum = trim($p['id_number'] ?? '');
+            $name  = $p['full_name'] ?? 'Hành khách';
+
+            // 🔥 Người lớn phải có CCCD
+            if ($type === 'adult') {
+
+                if ($idNum === '') {
+                    return back()->withInput()->withErrors([
+                        'passengers' => "Người lớn '{$name}' phải nhập CCCD."
+                    ]);
+                }
+
+                // 🔥 CCCD phải là 9–12 chữ số
+                if (!preg_match('/^[0-9]{9,12}$/', $idNum)) {
+                    return back()->withInput()->withErrors([
+                        'passengers' => "CCCD của '{$name}' không hợp lệ (phải gồm 9–12 chữ số)."
+                    ]);
+                }
+            }
+
+            // 🔥 Kiểm tra trùng CCCD
+            if ($idNum !== '') {
+                if (in_array($idNum, $cccdUsed)) {
+                    return back()->withInput()->withErrors([
+                        'passengers' => "CCCD '{$idNum}' bị trùng giữa các hành khách. Vui lòng kiểm tra lại."
+                    ]);
+                }
+                $cccdUsed[] = $idNum;
+            }
+        }
+    }
+}
+
 
 
         // Tính tiền tour dựa theo giá của lịch khởi hành (TourDeparture)
@@ -209,6 +273,9 @@ class BookingController extends Controller
         // Tổng cuối cùng = subtotal - discount (chính là số trong \"Tóm tắt đặt tour\")
         $totalAmount = $subtotal - $discountAmount;
 
+        try {
+            DB::beginTransaction();
+
         $booking = Booking::create([
             'user_id' => Auth::id(),
             'tour_id' => $validated['tour_id'],
@@ -220,10 +287,9 @@ class BookingController extends Controller
             'additional_services' => $additionalServices,
             'additional_services_total' => $additionalTotal,
             'total_amount' => $totalAmount,
-            'status' => 'pending',
+                'status' => 'confirmed', // Tự động xác nhận khi khách đặt tour, không cần admin xác nhận
             'note' => $validated['note'],
         ]);
-
 
         // ================================
         // LƯU DANH SÁCH HÀNH KHÁCH
@@ -244,18 +310,32 @@ class BookingController extends Controller
             }
         }
 
-
-
         // Update available seats
         // Giảm chỗ trống theo số ghế cần (người lớn + trẻ em)
         $departure->decrement('seats_available', $seatPassengers);
 
-        // Send notification
+            DB::commit();
+
+            // Send notification (không block redirect nếu lỗi)
+            try {
         $notificationService = new NotificationService();
         $notificationService->notifyBookingSuccess($booking);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send booking notification: ' . $e->getMessage());
+            }
 
-        return redirect()->route('bookings.show', $booking)
-            ->with('success', 'Đặt tour thành công! Vui lòng thanh toán để hoàn tất.');
+            // Đảm bảo redirect đến đúng route bookings.show (customer route)
+            return redirect()->route('bookings.show', ['booking' => $booking->id])
+                ->with('success', 'Đặt tour thành công! Bạn có thể tiến hành thanh toán ngay.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Booking creation failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->except(['_token'])
+            ]);
+            return back()->withInput()->withErrors(['error' => 'Có lỗi xảy ra khi đặt tour. Vui lòng thử lại hoặc liên hệ hỗ trợ.']);
+        }
     }
 
     /**
@@ -360,7 +440,7 @@ class BookingController extends Controller
 
         $booking->update([
             'departure_id' => $newDeparture->id,
-            'status' => 'pending',
+            'status' => 'confirmed', // Tự động xác nhận khi dời lịch
         ]);
 
         Mail::to($booking->user->email)

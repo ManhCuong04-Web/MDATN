@@ -131,8 +131,27 @@
                             <div class="col-md-6">
                                 <p><strong>Trạng thái:</strong>
                                     <span
-                                        class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'secondary') }} badge-lg">
+                                        class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : ($booking->status === 'paid' ? 'info' : 'secondary')) }} badge-lg">
+                                        @switch($booking->status)
+                                            @case('pending')
+                                                Chờ xác nhận
+                                                @break
+                                            @case('confirmed')
+                                                Chưa thanh toán
+                                                @break
+                                            @case('paid')
+                                                Đã thanh toán
+                                                @break
+                                            @case('cancelled')
+                                                Đã hủy
+                                                @break
+                                            @case('completed')
+                                                Hoàn thành
+                                                @break
+                                            @default
                                         {{ ucfirst($booking->status) }}
+                                                @break
+                                        @endswitch
                                     </span>
                                 </p>
                             </div>

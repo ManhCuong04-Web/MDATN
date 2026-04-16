@@ -76,9 +76,15 @@ class TourController extends Controller
                                  return \Carbon\Carbon::parse($departure->departure_date)->startOfDay()->lt($today);
                              });
         
-        // Chỉ lấy các ngày khởi hành trong tương lai cho user (nếu có)
-        $tour->load(['departures' => function($query) {
-            $query->whereDate('departure_date', '>=', now()->toDateString())
+        // Chỉ lấy các ngày khởi hành thỏa mãn điều kiện cho khách hàng:
+        // 1. Trạng thái không phải đã chốt (group_confirmed = false)
+        // 2. Ngày khởi hành phải cách ngày hiện tại ít nhất 3 ngày
+        $today = \Carbon\Carbon::today()->startOfDay();
+        $minDepartureDate = $today->copy()->addDays(3);
+        
+        $tour->load(['departures' => function($query) use ($minDepartureDate) {
+            $query->where('group_confirmed', false)
+                  ->whereDate('departure_date', '>=', $minDepartureDate->toDateString())
                   ->orderBy('departure_date');
         }]);
         

@@ -17,7 +17,7 @@
 //     public function index(Request $request, $departureId): View
 //     {
 //         $user = auth()->user();
-        
+
 //         $departure = TourDeparture::where('guide_id', $user->id)
 //             ->with(['tour', 'bookings.user'])
 //             ->findOrFail($departureId);
@@ -39,7 +39,7 @@
 //     public function store(Request $request, $departureId)
 //     {
 //         $user = auth()->user();
-        
+
 //         $departure = TourDeparture::where('guide_id', $user->id)
 //             ->findOrFail($departureId);
 
@@ -91,7 +91,7 @@
 //     public function show($departureId, $checkInId)
 //     {
 //         $user = auth()->user();
-        
+
 //         $checkIn = CheckIn::where('departure_id', $departureId)
 //             ->where('checked_by', $user->id)
 //             ->findOrFail($checkInId);
@@ -111,7 +111,7 @@
 //     public function update(Request $request, $departureId, $checkInId)
 //     {
 //         $user = auth()->user();
-        
+
 //         $checkIn = CheckIn::where('departure_id', $departureId)
 //             ->where('checked_by', $user->id)
 //             ->findOrFail($checkInId);
@@ -140,7 +140,7 @@
 //     public function destroy($departureId, $checkInId)
 //     {
 //         $user = auth()->user();
-        
+
 //         $checkIn = CheckIn::where('departure_id', $departureId)
 //             ->where('checked_by', $user->id)
 //             ->findOrFail($checkInId);
@@ -315,151 +315,172 @@
 
 
 
-
 namespace App\Http\Controllers\Guide;
 
 use App\Http\Controllers\Controller;
 use App\Models\CheckIn;
 use App\Models\TourDeparture;
 use App\Models\BookingPassenger;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class RollCallController extends Controller
 {
     /**
-     * Màn hình check-in đoàn (theo HÀNH KHÁCH)
+     * Màn hình điểm danh đoàn (theo HÀNH KHÁCH)
      */
-   public function index($departureId): View
-{
-    $user = auth()->user();
+    public function index($departureId): View
+    {
+        $user = auth()->user();
 
-    $departure = TourDeparture::where('guide_id', $user->id)
-        ->with([
-            'tour',
-            'bookings' => fn ($q) => $q->where('status', '!=', 'cancelled'),
-            'bookings.user',
-            'bookings.passengers',
-            'bookings.passengers.checkIns' => fn ($q) =>
+        // Kiểm tra departure thuộc HDV và load dữ liệu
+        $departure = TourDeparture::where('guide_id', $user->id)
+            ->with([
+                'tour',
+                'bookings' => fn($q) => $q->where('status', '!=', 'cancelled'),
+                'bookings.user',
+                'bookings.passengers',
+                'bookings.passengers.checkIns' => fn($q) =>
                 $q->where('departure_id', $departureId)
-        ])
-        ->findOrFail($departureId);
+            ])
+            ->findOrFail($departureId);
 
-    $passengers = $departure->bookings->flatMap->passengers;
+        /**
+         * ⛔ KHÔNG CHO TRUY CẬP VÀO CHECK-IN NẾU TOUR ĐÃ COMPLETED
+         */
+        // if ($departure->status === 'completed') {
+        //     return redirect()
+        //         ->route('guide.departures.show', $departureId)
+        //         ->with('error', 'Tour đã kết thúc. Bạn không thể vào điểm danh nữa.');
+        // }
 
-    return view('guide.check-ins.index', compact(
-        'departure',
-        'passengers'
-    ));
-}
+        $passengers = $departure->bookings->flatMap->passengers;
+
+        return view('guide.check-ins.index', compact('departure', 'passengers'));
+    }
+
 
     /**
-     * Tick / bỏ tick check-in cho 1 hành khách (AJAX)
+     * Tick / bỏ tick check-in cho 1 hành khách
      */
     public function store(Request $request, $departureId)
     {
         $user = auth()->user();
 
-        // Chặn guide không thuộc tour
-        TourDeparture::where('guide_id', $user->id)
-            ->findOrFail($departureId);
+        // Bảo vệ: chỉ HDV của tour mới được check-in
+        TourDeparture::where('guide_id', $user->id)->findOrFail($departureId);
+
+            $departure = TourDeparture::where('guide_id', $user->id)
+        ->findOrFail($departureId);
 
         $validated = $request->validate([
             'passenger_id' => ['required', 'exists:booking_passengers,id'],
-            'status' => ['required', 'in:checked_in,absent'],
+            'status'       => ['required', 'in:checked_in,absent'],
+            'check_in_time'  => ['required', 'date'],
         ]);
 
-        // Kiểm tra hành khách thuộc tour này
+
+        // ⭐ Parse ngày giờ check-in
+        $checkInTime = Carbon::parse($request->check_in_time);
+
+        // Ngày tour bắt đầu
+        $tourStart = $departure->departure_date->copy()->startOfDay();
+
+        // Ngày tour kết thúc = ngày bắt đầu + số ngày tour - 1
+        $tourEnd = $departure->departure_date
+            ->copy()
+            ->addDays($departure->tour->duration_days - 1)
+            ->endOfDay();
+
+        // ❌ Không cho check-in trước ngày bắt đầu tour
+        if ($checkInTime->lt($tourStart)) {
+            return back()->with('error', 'Không thể check-in trước ngày tour bắt đầu.');
+        }
+
+        // ❌ Không cho check-in sau khi tour đã kết thúc
+        if ($checkInTime->gt($tourEnd)) {
+            return back()->with('error', 'Không thể check-in sau khi tour đã kết thúc.');
+        }
+
+        // ❌ Không cho check-in tương lai
+        if ($checkInTime->gt(now())) {
+            return back()->with('error', 'Thời gian check-in không thể vượt quá hiện tại.');
+        }
+
+        // Kiểm tra hành khách thuộc departure
         $passenger = BookingPassenger::where('id', $validated['passenger_id'])
             ->whereHas('booking', function ($q) use ($departureId) {
                 $q->where('departure_id', $departureId)
-                  ->where('status', '!=', 'cancelled');
+                    ->where('status', '!=', 'cancelled');
             })
             ->firstOrFail();
 
-        // Mỗi hành khách chỉ có 1 check-in cho 1 departure
-        $checkIn = CheckIn::updateOrCreate(
+        // Tạo hoặc cập nhật check-in
+        CheckIn::updateOrCreate(
             [
                 'departure_id' => $departureId,
                 'passenger_id' => $passenger->id,
             ],
             [
-                'booking_id' => $passenger->booking_id,
-                'checked_by' => $user->id,
-                'status' => $validated['status'],
+                'booking_id'    => $passenger->booking_id,
+                'checked_by'    => $user->id,
+                'status'        => $validated['status'],
                 'check_in_time' => now(),
             ]
         );
 
-        return response()->json([
-            'success' => true,
-            'status' => $checkIn->status,
-        ]);
+        return redirect()
+            ->back()
+            ->with('success', 'Đã cập nhật điểm danh.');
     }
 
+
     /**
-     * Lấy thông tin check-in (JSON – nếu cần mở rộng)
+     * Kết thúc tour và khóa điểm danh
      */
-    public function show($departureId, $checkInId)
+    public function complete(Request $request, $departureId)
     {
         $user = auth()->user();
 
-        $checkIn = CheckIn::where('departure_id', $departureId)
-            ->where('checked_by', $user->id)
-            ->findOrFail($checkInId);
+        $departure = TourDeparture::where('id', $departureId)
+            ->where('guide_id', $user->id)
+            ->firstOrFail();
 
-        // return response()->json([
-        //     'id' => $checkIn->id,
-        //     'status' => $checkIn->status,
-        //     'check_in_time' => optional($checkIn->check_in_time)->format('Y-m-d H:i'),
-        // ]);
+        // Không cho kết thúc lại
+        if ($departure->status === 'completed') {
+            return redirect()
+                ->route('guide.departures.show', $departureId)
+                ->with('error', 'Tour đã kết thúc trước đó.');
+        }
 
+        // Phải có ít nhất 1 khách check-in
+        $checkedInCount = CheckIn::where('departure_id', $departureId)
+            ->where('status', 'checked_in')
+            ->count();
+
+        if ($checkedInCount == 0) {
+            return redirect()
+                ->route('guide.roll-calls.index', $departureId)
+                ->with('error', 'Chưa có hành khách nào check-in.');
+        }
+
+        // Cập nhật trạng thái
+        $departure->update([
+            'tour_status' => 'completed',
+            'completed_at' => now()
+        ]);
+
+        // Redirect về trang chi tiết tour
         return redirect()
-        ->route('guide.roll-calls.index', $departureId)
-        ->with('success', 'Đã cập nhật trạng thái hành khách');
-
+            ->route('guide.departures.show', $departureId)
+            ->with('success', 'Tour đã kết thúc thành công!');
     }
 
-    /**
-     * kết thúc tour
-     */
 
-//         public function complete(Request $request, $departureId)
-// {
-//     $user = auth()->user();
-
-//     $departure = TourDeparture::where('id', $departureId)
-//         ->where('guide_id', $user->id)
-//         ->firstOrFail();
-
-//     // ❌ Không cho kết thúc lại
-//     if ($departure->status === 'completed') {
-//         return redirect()->back()
-//             ->with('error', 'Tour đã được kết thúc trước đó.');
-//     }
-
-//     // ✅ Phải có ít nhất 1 khách check-in
-//     $checkedInCount = CheckIn::where('departure_id', $departureId)
-//         ->where('status', 'checked_in')
-//         ->count();
-
-//     if ($checkedInCount === 0) {
-//         return redirect()->back()
-//             ->with('error', 'Chưa có hành khách nào check-in.');
-//     }
-
-//     // ✅ Kết thúc tour
-//     $departure->update([
-//         'status' => 'completed',
-//         'completed_at' => now(), // nếu có cột này
-//     ]);
-
-//     return redirect()->route('guide.roll-calls.index', $departureId)
-//         ->with('success', 'Đã kết thúc tour thành công.');
-// }
 
     /**
-     * Xóa check-in (hiếm khi dùng)
+     * Xóa check-in (tùy chọn)
      */
     public function destroy($departureId, $checkInId)
     {
