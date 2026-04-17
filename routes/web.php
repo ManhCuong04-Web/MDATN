@@ -520,7 +520,7 @@ Route::get('/sync-guides-users', function () {
 // Redirect old admin schedule routes to new tour schedule management
 Route::get('/admin/schedules/{tourId}', function ($tourId) {
     return redirect("/admin/tour-schedule-management?tour_id={$tourId}");
-})->name('admin.schedules.index');
+})->name('admin.schedules.redirect');
 
 // ============================================
 // ADMIN ROUTES
@@ -741,12 +741,12 @@ Route::put('/invoices/{invoice}/status', [App\Http\Controllers\InvoiceWebControl
 Route::get('/invoices/{invoice}', [App\Http\Controllers\InvoiceWebController::class, 'show']);
 
 // Quản lý lịch trình
-Route::get('tours/{tour}/schedules', [TourScheduleController::class, 'index'])->name('schedules.index');
-Route::get('tours/{tour}/schedules/create', [TourScheduleController::class, 'create'])->name('schedules.create');
-Route::post('tours/{tour}/schedules', [TourScheduleController::class, 'store'])->name('schedules.store');
-Route::get('schedules/{id}/edit', [TourScheduleController::class, 'edit'])->name('schedules.edit');
-Route::put('schedules/{id}', [TourScheduleController::class, 'update'])->name('schedules.update');
-Route::delete('schedules/{id}', [TourScheduleController::class, 'destroy'])->name('schedules.destroy');
+// Route::get('tours/{tour}/schedules', [TourScheduleController::class, 'index'])->name('schedules.index');
+// Route::get('tours/{tour}/schedules/create', [TourScheduleController::class, 'create'])->name('schedules.create');
+// Route::post('tours/{tour}/schedules', [TourScheduleController::class, 'store'])->name('schedules.store');
+// Route::get('schedules/{id}/edit', [TourScheduleController::class, 'edit'])->name('schedules.edit');
+// Route::put('schedules/{id}', [TourScheduleController::class, 'update'])->name('schedules.update');
+// Route::delete('schedules/{id}', [TourScheduleController::class, 'destroy'])->name('schedules.destroy');
 
 // Tour Schedule Management Routes
 // Trang quản lý lịch trình cho admin
