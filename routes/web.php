@@ -541,13 +541,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Tour Management Hub - Trang trung tâm quản lý tour
     Route::get('/tours/{tour}/manage', [AdminController::class, 'tourManagementHub'])->name('tours.manage');
 
-    // Tour Schedules management
-    Route::get('/tours/{tour}/schedules', [\App\Http\Controllers\Admin\TourScheduleController::class, 'index'])->name('schedules.index');
-    Route::get('/tours/{tour}/schedules/create', [\App\Http\Controllers\Admin\TourScheduleController::class, 'create'])->name('schedules.create');
-    Route::post('/tours/{tour}/schedules', [\App\Http\Controllers\Admin\TourScheduleController::class, 'store'])->name('schedules.store');
-    Route::get('/tours/{tour}/schedules/{schedule}/edit', [\App\Http\Controllers\Admin\TourScheduleController::class, 'edit'])->name('schedules.edit');
-    Route::put('/tours/{tour}/schedules/{schedule}', [\App\Http\Controllers\Admin\TourScheduleController::class, 'update'])->name('schedules.update');
-    Route::delete('/tours/{tour}/schedules/{schedule}', [\App\Http\Controllers\Admin\TourScheduleController::class, 'destroy'])->name('schedules.destroy');
+   // Tour Schedules management
+Route::get('/tours/{tour}/schedules', [\App\Http\Controllers\Admin\TourScheduleController::class, 'index'])->name('tour-schedules.index');
+Route::get('/tours/{tour}/schedules/create', [\App\Http\Controllers\Admin\TourScheduleController::class, 'create'])->name('tour-schedules.create');
+Route::post('/tours/{tour}/schedules', [\App\Http\Controllers\Admin\TourScheduleController::class, 'store'])->name('tour-schedules.store');
+Route::get('/tours/{tour}/schedules/{schedule}/edit', [\App\Http\Controllers\Admin\TourScheduleController::class, 'edit'])->name('tour-schedules.edit');
+Route::put('/tours/{tour}/schedules/{schedule}', [\App\Http\Controllers\Admin\TourScheduleController::class, 'update'])->name('tour-schedules.update');
+Route::delete('/tours/{tour}/schedules/{schedule}', [\App\Http\Controllers\Admin\TourScheduleController::class, 'destroy'])->name('tour-schedules.destroy');
 
     // Tour Schedule Management (với tour context)
     Route::get('/tours/{tour}/schedule-management', [AdminController::class, 'tourScheduleManagement'])->name('tours.schedule-management');
